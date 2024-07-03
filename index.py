@@ -30,7 +30,7 @@ def upload_files():
         file_format = file_name.split('.')[-1]
         # 生成新的文件名，确保月份和日期以两位数字显示
         now = datetime.now()
-        new_file_name = now.strftime("%Y/%m/%d/") + f"{time.time()}.{file_format}"
+        new_file_name = now.strftime("%Y/%m/%d/") + f"{int(time.time())}.{file_format}"
         
         # 保存文件到 Vercel 提供的临时目录
         temp_dir = os.path.join('/tmp', 'uploads')
