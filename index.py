@@ -32,8 +32,8 @@ def upload_files():
         now = datetime.now()
         new_file_name = now.strftime("%Y/%m/%d/") + f"{time.time()}.{file_format}"
         
-        # 使用 Lambda 临时目录
-        temp_dir = os.environ['TMPDIR']
+        # 保存文件到 Vercel 提供的临时目录
+        temp_dir = os.path.join('/tmp', 'uploads')
         file_path = os.path.join(temp_dir, new_file_name.replace('/', os.sep))
 
         # 创建目标目录（如果不存在）
@@ -43,7 +43,7 @@ def upload_files():
 
         try:
             print(f"Will upload {file_name} to the oss!")
-            file.save(file_path)  # 保存文件到 Lambda 临时目录
+            file.save(file_path)  # 保存文件到 Vercel 临时目录
             oss2.resumable_upload(bucket, new_file_name, file_path)
             # 确保 URL 格式正确
             url = f"https://{BUCKET_NAME}.{ENDPOINT.split('//')[1]}/{new_file_name}"
