@@ -31,23 +31,29 @@ def upload_files():
         # 生成新的文件名，确保月份和日期以两位数字显示
         now = datetime.now()
         new_file_name = now.strftime("%Y/%m/%d/") + f"{time.time()}.{file_format}"
-        file_path = os.path.join('temp', new_file_name.replace('/', os.sep))  # 使用系统的路径分隔符
-        directory = os.path.dirname(file_path)
+        
+        # 使用 Lambda 临时目录
+        temp_dir = os.environ['TMPDIR']
+        file_path = os.path.join(temp_dir, new_file_name.replace('/', os.sep))
 
         # 创建目标目录（如果不存在）
+        directory = os.path.dirname(file_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
 
         try:
             print(f"Will upload {file_name} to the oss!")
-            file.save(file_path)  # 保存文件到创建的目录
-            oss2.resumable_upload(bucket, new_file_name, file_path, progress_callback=percentage)
-            os.remove(file_path)  # 删除临时保存的文件
+            file.save(file_path)  # 保存文件到 Lambda 临时目录
+            oss2.resumable_upload(bucket, new_file_name, file_path)
             # 确保 URL 格式正确
             url = f"https://{BUCKET_NAME}.{ENDPOINT.split('//')[1]}/{new_file_name}"
             return {"message": f"Upload successful!", "url": url}, 200
         except Exception as e:
             return {"message": f"Upload failed: {str(e)}"}, 500
+        finally:
+            # 删除临时保存的文件
+            if os.path.exists(file_path):
+                os.remove(file_path)
     else:
         return {"message": "No file provided"}, 400
 
